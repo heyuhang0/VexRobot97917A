@@ -18,12 +18,9 @@
 #pragma competitionControl(Competition)
 #include "Vex_Competition_Includes.c"
 
-bool auto_7L = false, auto_7R = false, auto_7D = false, auto_7U = false;
 /************************************************************************************/
-/****************************** somthing else ***************************************/
+/************************************* Setting **************************************/
 /************************************************************************************/
-#define RECORD false
-
 #define HJM
 
 #ifdef HJM
@@ -39,6 +36,13 @@ bool auto_7L = false, auto_7R = false, auto_7D = false, auto_7U = false;
 #define secondaryJoyY Ch3
 #define secondaryJoyX Ch4
 #endif
+
+
+/************************************************************************************/
+/************************************** Common **************************************/
+/************************************************************************************/
+
+bool auto_7L = false, auto_7R = false, auto_7D = false, auto_7U = false;
 
 void setArmMotor(int power)
 {
@@ -278,30 +282,8 @@ task autonomous()
 /************************************************************************************/
 /******************************* User control ***************************************/
 /************************************************************************************/
-task record()
-{
-	clearDebugStream();
-	while(!vexRT[Btn6D])
-		delay(1);
-	writeDebugStream("void auto()\n{\n");
-	while(!vexRT[Btn5D])
-	{
-		writeDebugStream("\tmotor[port2] = %d;\n",motor[port2]);
-		writeDebugStream("\tmotor[port3] = %d;\n",motor[port3]);
-		writeDebugStream("\tmotor[port6] = %d;\n",motor[port6]);
-		writeDebugStream("\tmotor[port7] = %d;\n",motor[port7]);
-		writeDebugStream("\tmotor[port8] = %d;\n",motor[port8]);
-		writeDebugStream("\tmotor[port9] = %d;\n",motor[port9]);
-		writeDebugStream("\tdelay(100);\n");
-		delay(100);
-	}
-	writeDebugStream("}\n");
-}
-
 task usercontrol()
 {
-	if(RECORD)
-		startTask(record);
 	startTask(armControl);
 	int threshold = 20;
 	int mainX = 0,mainY = 0,secondaryX = 0,secondaryY = 0;
@@ -327,7 +309,5 @@ task usercontrol()
 		motor[backRightWheel] = mainY + secondaryX - mainX;
 
 		delay(20);
-		if(RECORD)
-			delay(80);
 	}
 }
