@@ -1,17 +1,22 @@
-程序适用于97917A（四马达机械臂+八马达底盘）
+﻿程序适用于97917A（四马达机械臂+八马达底盘）
 
-接口定义：
-#pragma config(Sensor, in1,    armAngle,       sensorPotentiometer)
-#pragma config(Sensor, in2,    robotAngle,     sensorGyro)
-#pragma config(Sensor, dgtl1,  RobotEncoder,   sensorQuadEncoder)
-#pragma config(Sensor, dgtl3,  autoL,          sensorDigitalIn)
-#pragma config(Sensor, dgtl4,  autoR,          sensorDigitalIn)
-#pragma config(Sensor, dgtl5,  planA,          sensorDigitalIn)
-#pragma config(Sensor, dgtl6,  planB,          sensorDigitalIn)
-#pragma config(Sensor, dgtl7,  planC,          sensorDigitalIn)
-#pragma config(Motor,  port2,           frontRightWheel, tmotorVex393TurboSpeed_MC29, openLoop, reversed)
-#pragma config(Motor,  port3,           backLeftWheel, tmotorVex393TurboSpeed_MC29, openLoop)
-#pragma config(Motor,  port6,           armLeftMotor,  tmotorVex393HighSpeed_MC29, openLoop, reversed)
-#pragma config(Motor,  port7,           armRightMotor, tmotorVex393HighSpeed_MC29, openLoop)
-#pragma config(Motor,  port8,           backRightWheel, tmotorVex393TurboSpeed_MC29, openLoop, reversed)
-#pragma config(Motor,  port9,           frontLeftWheel, tmotorVex393TurboSpeed_MC29, openLoop)
+/***************接口定义***********/
+
+机械臂角度传感器	->in1
+机器人角速度传感器	->in2
+右侧双线编码器		->dgtl1&2
+自动程序左跳线		->dgtl3
+自动程序右跳线		->dgtl4
+自动程序方案A		->dgtl5
+自动程序方案B		->dgtl6
+自动程序方案C		->dgtl7
+
+右前轮			->port2
+左后轮			->port3
+左侧机械臂马达		->port6
+右侧机械臂马达		->port7
+右后轮			->port8
+左前轮			->port9
+
+/**********************************/
+
