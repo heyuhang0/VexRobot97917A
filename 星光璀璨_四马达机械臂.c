@@ -22,6 +22,7 @@
 /************************************* Setting **************************************/
 /************************************************************************************/
 #define HJM
+#define AUTOPUTDOWN true
 
 #ifdef HJM
 #define mainJoyY Ch3
@@ -36,8 +37,6 @@
 #define secondaryJoyY Ch3
 #define secondaryJoyX Ch4
 #endif
-
-
 /************************************************************************************/
 /************************************** Common **************************************/
 /************************************************************************************/
@@ -187,8 +186,11 @@ task armControl()
 		else if(aim == HIGHEST && stata != done)
 		{
 			putUpArm();
-			delay(200);
-			putDownArm();
+			if(AUTOPUTDOWN)
+			{
+				delay(200);
+				putDownArm();
+			}
 			stata = done;
 		}
 		else if(aim != HIGHEST && aim != LOWEST)
