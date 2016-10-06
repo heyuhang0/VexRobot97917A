@@ -21,7 +21,10 @@
 /************************************************************************************/
 /************************************* Setting **************************************/
 /************************************************************************************/
+//Slect the operating habits
 #define HJM
+//Automatically lower the robot arm
+#define AUTOPUTDOWN true
 
 #ifdef HJM
 #define mainJoyY Ch3
@@ -36,8 +39,6 @@
 #define secondaryJoyY Ch3
 #define secondaryJoyX Ch4
 #endif
-
-
 /************************************************************************************/
 /************************************** Common **************************************/
 /************************************************************************************/
@@ -51,6 +52,7 @@ void setArmMotor(int power)
 }
 
 void setArmMotorWithHighTech(int power)
+//Better linear performance
 {
 	if(power > 2)
 	{
@@ -72,34 +74,38 @@ void setArmMotorWithHighTech(int power)
 void putDownArm(void)
 {
 	int lastAngle;
+	//Quickly lower the robot arm
 	setArmMotor(-127);
 	delay(100);
 	do{
 		lastAngle = SensorValue[armAngle];
 		delay(50);
 	}while(lastAngle - SensorValue[armAngle] > 0 && SensorValue[armAngle] > 1500);
-
+	//Slowly approaching the lowest position(When stopped, stop)
 	setArmMotor(-40);
 	do{
 		lastAngle = SensorValue[armAngle];
 		delay(50);
 	}while(lastAngle - SensorValue[armAngle] > 0);
 	if(SensorValue[armAngle] < 1100)
+	//if successfully put down,power up briefly to ensure that it is in place
 	{
 		delay(50);
 		setArmMotor(-100);
 		delay(100);
 	}
 	else
+	//If it fails, lift it lightly
 	{
 		setArmMotor(100);
 		delay(100);
 	}
-	setArmMotor(-10);
+	setArmMotor(-10);//Make it static
 }
 
 void putUpArm(void)
 {
+	//Full-speed elevation until blocked
 	int lastAngle;
 	setArmMotor(127);
 	delay(100);
@@ -123,7 +129,8 @@ task armControl()
 
 	while(true)
 	{
-		if(time1[T1] > 300)
+		//Button recognition and preprocessing
+		if(time1[T1] > 300)//Prevent double-click
 		{
 			if(vexRT[Btn8D] || vexRT[Btn7D] || auto_7D)
 			{
@@ -141,7 +148,10 @@ task armControl()
 				clearTimer(T3);
 				do{
 					lastAngle = SensorValue[armAngle];
-					if(lastAngle - angleStart > 250 && (time1[T3] < 320 || motor[frontLeftWheel] < -60 || motor[frontRightWheel] < -60))
+					if(lastAngle - angleStart > 250 //check when lifting a certain angle
+						&& (time1[T3] < 320 //if lifting too fast
+						|| motor[frontLeftWheel] < -60 || motor[frontRightWheel] < -60))
+						//or when the driver reversing(This means that the driver thinks the action has been done)
 					{
 						writeDebugStream("%d\n",time1[T3]);
 						setArmMotor(-10);
@@ -179,6 +189,7 @@ task armControl()
 		if(stata == remainToBeDone)
 			clearTimer(T1);
 
+		//Perform the operation
 		if(aim == LOWEST && stata != done)
 		{
 			putDownArm();
@@ -187,13 +198,16 @@ task armControl()
 		else if(aim == HIGHEST && stata != done)
 		{
 			putUpArm();
-			delay(200);
-			putDownArm();
+			if(AUTOPUTDOWN)
+			{
+				delay(200);
+				putDownArm();
+			}
 			stata = done;
 		}
 		else if(aim != HIGHEST && aim != LOWEST)
 		{
-			if(stata == remainToBeDone)
+			if(stata == remainToBeDone)//The first cycle of PID, initialization
 			{
 				stata = working;
 				pLast = pNow = aim - SensorValue[armAngle];
@@ -201,16 +215,18 @@ task armControl()
 				vNow = 0;
 				clearTimer(T3);
 			}
-			else
+			else//Process sensor data
 			{
 				pLast = pNow;
 				pNow = aim - SensorValue[armAngle];
 				iNow += pNow;
 				vNow = pLast - pNow;
 			}
+
+			//Dynamically set parameters
 			kP = 60;
 			kI = 10;
-			if(abs(kI*iNow) > 40000)
+			if(abs(kI*iNow) > 40000)//When stuck, remove the exception
 				iNow = 40000/kI*sgn(iNow);
 			kV = 400;
 			slewRate = 15;
@@ -220,20 +236,26 @@ task armControl()
 				maxPower = 25;
 			if(time1[T3] > 1000)
 				maxPower = 9;
-			if( abs(pNow) < 50)
+			if(abs(pNow) < 50)
 				maxPower = 5;
 
 			lastPower = power;
+			//Calculates the raw output
 			power = (int)((kP*pNow + kI*iNow - kV*vNow)/1000);
+
+			//Smooth change of motor power
 			if(power - lastPower > slewRate)
 				power = lastPower + slewRate;
 			else if(lastPower - power > slewRate)
 				power = lastPower - slewRate;
 
+			//Limit to maximum power
 			if(power > maxPower)
 				power = maxPower;
 			else if(power < -maxPower)
 				power = -maxPower;
+
+			//output to arm motor
 			setArmMotorWithHighTech(power);
 			delay(30);
 		}
@@ -265,7 +287,7 @@ task autonomous()
 			autoPlanAL();
 		else if(!SensorValue[planC])
 			autoPlanCL();
-		else
+		else//B is the default plan
 			autoPlanBL();
 	}
 	else if(!SensorValue[autoR])
@@ -274,7 +296,7 @@ task autonomous()
 			autoPlanAR();
 		else if(!SensorValue[planC])
 			autoPlanCR();
-		else
+		else//B is the default plan
 			autoPlanBR();
 	}
 	writeDebugStream("%d\n",time1[T4]);
